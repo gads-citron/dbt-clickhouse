@@ -588,6 +588,19 @@ class ClickHouseAdapter(SQLAdapter):
             return f"CONSTRAINT {constraint.name} CHECK ({constraint.expression})"
         return None
 
+    @classmethod
+    def render_event_time_filtered(self, rendered: Optional[str] = None) -> str:
+        rendered = rendered or self.render()
+        if self.event_time_filter is None:
+            return rendered
+
+        filter = self.execute_macro('render_event_time_filter', kwargs={'event_time_filter': self.event_time_filter})
+        if not filter:
+            return rendered
+
+        return f"(select * from {rendered} where {filter}){self._render_subquery_alias(namespace='et_filter')}"
+
+
 
 @dataclass
 class ClickHouseDatabase:

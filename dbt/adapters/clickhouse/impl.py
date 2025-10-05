@@ -590,6 +590,9 @@ class ClickHouseAdapter(SQLAdapter):
 
     @classmethod
     def render_event_time_filtered(self, rendered: Optional[str] = None) -> str:
+        import pprint
+        pprint.pprint(self.event_time_filter)
+
         rendered = rendered or self.render()
         if self.event_time_filter is None:
             return rendered
@@ -597,7 +600,7 @@ class ClickHouseAdapter(SQLAdapter):
         filter = self.execute_macro('render_event_time_filter', kwargs={'event_time_filter': self.event_time_filter})
         if not filter:
             return rendered
-
+        pprint.pprint(filter)
         return f"(select * from {rendered} where {filter}){self._render_subquery_alias(namespace='et_filter')}"
 
 

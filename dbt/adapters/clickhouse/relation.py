@@ -56,6 +56,9 @@ class ClickHouseRelation(BaseRelation):
     def _render_event_time_filtered(self, event_time_filter: EventTimeFilter) -> str:
         import pprint
         pprint.pprint(event_time_filter)
+        import traceback
+        for line in traceback.format_stack():
+            print(line.strip())
         """
         Render event time filter directly without depending on adapter.
         Returns "" if start and end are both None

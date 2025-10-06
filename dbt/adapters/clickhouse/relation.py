@@ -53,6 +53,23 @@ class ClickHouseRelation(BaseRelation):
     def render(self) -> str:
         return ".".join(quote_identifier(part) for _, part in self._render_iterator() if part)
 
+    def render_event_time_filtered(self, rendered: Optional[str] = None) -> str:
+        rendered = rendered or self.render()
+        if self.event_time_filter is None:
+            return rendered
+
+        filter = self._render_event_time_filtered(self.event_time_filter)
+        if not filter:
+            return rendered
+
+        if filter.find("<__USE_S3_INCREMENTAL__>") >= 0:
+            path = ", _path"
+            self.event_time_filter.s3 = True
+        else:
+            path = ""
+         
+        return f"(select *{path} from {rendered} where {filter}){self._render_subquery_alias(namespace='et_filter')}"
+
     def _render_event_time_filtered(self, event_time_filter: EventTimeFilter) -> str:
         """
         Returns "" if start and end are both None
